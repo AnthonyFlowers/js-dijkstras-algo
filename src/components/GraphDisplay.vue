@@ -5,8 +5,10 @@ import { Graph, Edge, Position, Vertice } from "./graph";
 <template>
   <div id="graphView">
     <canvas id="graphCanvas" ref="graphCanvas" @click="graphClick"></canvas>
+    <input type="number" ref="edgeLength" />
     <input type="checkbox" ref="edgeMode" />
     <button @click="traverse">Traverse</button>
+    <button @click="redraw">Redraw</button>
   </div>
 </template>
 <script lang="ts">
@@ -14,14 +16,21 @@ export default defineComponent({
   name: "GraphDisplay",
   data() {
     return {
-      graphCanvasRef: <HTMLCanvasElement>this.$refs.graphCanvas,
       graph: new Graph(),
-      edgeToggle: <HTMLInputElement>this.$refs.edgeMode,
       selectedPoint: null as Vertice | null,
     };
   },
   methods: {
-    clear() {},
+    redraw() {
+      const canvas = <HTMLCanvasElement>this.$refs.graphCanvas;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      this.graph
+        .getVerticies()
+        .forEach((v) => this.drawVertice(v.position, canvas));
+      this.graph.getEdges().forEach((e) => this.drawEdge(e, canvas));
+    },
     addVertice(position: Position) {
       this.graph.addVertice(position);
     },
@@ -33,16 +42,28 @@ export default defineComponent({
       };
       const foundPoint = this.graph.pointExists(position);
       if (this.selectedPoint && foundPoint) {
-        const edge = this.graph.addEdge(
+        const existingEdge = this.graph.edgeExists(
           this.selectedPoint.id,
-          foundPoint.id,
-          5
+          foundPoint.id
         );
-        this.drawEdge(edge, canvas);
-      }
-      if (foundPoint) {
+        if (existingEdge) {
+          this.graph.removeEdge(existingEdge);
+          this.redraw();
+        } else {
+          const edgeLength = parseInt(
+            (<HTMLInputElement>this.$refs.edgeLength).value
+          );
+          const edge = this.graph.addEdge(
+            this.selectedPoint.id,
+            foundPoint.id,
+            edgeLength
+          );
+          this.drawEdge(edge, canvas);
+        }
+        this.selectedPoint = null;
+      } else if (foundPoint) {
         this.selectedPoint = foundPoint;
-        console.log("exists", this.selectedPoint);
+        console.log("select1", this.selectedPoint);
       } else {
         this.graph.addVertice(position);
         this.drawVertice(position, canvas);

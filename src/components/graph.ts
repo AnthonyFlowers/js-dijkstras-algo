@@ -1,3 +1,4 @@
+import _ from "lodash";
 export interface Edge {
   verticeOne: Vertice;
   verticeTwo: Vertice;
@@ -19,12 +20,12 @@ export class Graph {
   private path: Edge[];
   private verticies: Vertice[];
   private edges: Edge[];
-  private minDistance: number;
+  private minPointDistance: number;
   constructor() {
     this.path = [];
     this.verticies = [];
     this.edges = [];
-    this.minDistance = 10;
+    this.minPointDistance = 10;
   }
   public addVertice(position: Position) {
     const newVertice = {
@@ -43,7 +44,23 @@ export class Graph {
       distance,
     };
     this.edges.push(newEdge);
+    this.clearPath();
     return newEdge;
+  }
+  public removeEdge(edge: Edge) {
+    console.log(JSON.stringify(edge));
+    this.edges = this.edges.filter(
+      (e) =>
+        !(
+          (e.verticeOne.id === edge.verticeOne.id &&
+            e.verticeTwo.id === edge.verticeTwo.id) ||
+          (e.verticeOne.id === edge.verticeTwo.id &&
+            e.verticeTwo.id === edge.verticeOne.id)
+        )
+    );
+    console.log(JSON.stringify(edge));
+    console.log(JSON.stringify(this.edges));
+    this.clearPath();
   }
   public getPath(): Edge[] {
     return this.path;
@@ -56,6 +73,13 @@ export class Graph {
       throw Error(`Could not find a vertice with the id: ${verticeId}`);
     }
   }
+  public getVerticies(): Vertice[] {
+    return _.cloneDeep(this.verticies);
+  }
+  public getEdges(): Edge[] {
+    return _.cloneDeep(this.edges);
+  }
+
   public traverse(
     fromVerticeId: number,
     toVerticeId: number,
@@ -64,6 +88,8 @@ export class Graph {
     const fromVertice = this.getVertice(fromVerticeId);
     const toVertice = this.getVertice(toVerticeId);
     if (path.length === 0) {
+      this.clearPath();
+
       fromVertice.distance = 0;
     }
     if (fromVertice === toVertice) {
@@ -94,17 +120,34 @@ export class Graph {
         ]);
       }
     }
-    return {
-      path: this.path,
+    return _.cloneDeep({
+      path: [...this.path],
       distance: this.path.reduce((sum, e) => sum + e.distance, 0),
-    };
+    });
   }
   public pointExists(position: { x: number; y: number }): Vertice | undefined {
     return this.verticies.find(
       (v) =>
-        Math.abs(v.position.x - position.x) <= this.minDistance &&
-        Math.abs(v.position.y - position.y) <= this.minDistance
+        Math.abs(v.position.x - position.x) < this.minPointDistance &&
+        Math.abs(v.position.y - position.y) < this.minPointDistance
     );
+  }
+  public edgeExists(
+    verticeOneId: number,
+    verticeTwoId: number
+  ): Edge | undefined {
+    return this.edges.find(
+      (e) =>
+        (e.verticeOne.id === verticeOneId &&
+          e.verticeTwo.id === verticeTwoId) ||
+        (e.verticeOne.id === verticeTwoId && e.verticeTwo.id === verticeOneId)
+    );
+  }
+  private clearPath() {
+    this.path = [];
+    this.verticies.forEach((v) => {
+      v.distance = Number.MAX_SAFE_INTEGER;
+    });
   }
   private getNextVerticeId() {
     return this.verticies.length

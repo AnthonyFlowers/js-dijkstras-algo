@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineComponent } from "vue";
-import { Graph, Edge, Position, Vertex } from "./graph";
+import { Graph, Edge, Vertex } from "./graph";
 </script>
 <template>
   <div id="graphView">
@@ -157,8 +157,6 @@ export default defineComponent({
   margin-bottom: 8px;
 }
 #graphCanvas {
-  /* width: 600px;
-  height: 300px; */
   border: solid 1px black;
   display: block;
 }

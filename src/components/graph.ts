@@ -1,7 +1,7 @@
 import _ from "lodash";
 export interface Edge {
-  verticeOne: Vertice;
-  verticeTwo: Vertice;
+  vertexOne: Vertex;
+  vertexTwo: Vertex;
   distance: number;
 }
 
@@ -10,7 +10,7 @@ export interface Position {
   y: number;
 }
 
-export interface Vertice {
+export interface Vertex {
   id: number;
   distance: number;
   position: Position;
@@ -18,81 +18,73 @@ export interface Vertice {
 
 export class Graph {
   private path: Edge[];
-  private verticies: Vertice[];
+  private verticies: Vertex[];
   private edges: Edge[];
   private minPointDistance: number;
   constructor() {
     this.path = [];
     this.verticies = [];
     this.edges = [];
-    this.minPointDistance = 10;
+    this.minPointDistance = 20;
   }
-  public addVertice(position: Position) {
-    const newVertice = {
-      id: this.getNextVerticeId(),
+  public addvertex(position: Position): Vertex {
+    const newvertex = {
+      id: this.getNextvertexId(),
       distance: Number.MAX_SAFE_INTEGER,
       position: position,
     };
-    this.verticies.push(newVertice);
+    this.verticies.push(newvertex);
+    return newvertex;
   }
-  public addEdge(verticeOneId: number, verticeTwoId: number, distance: number) {
-    const verticeOne = this.getVertice(verticeOneId);
-    const verticeTwo = this.getVertice(verticeTwoId);
+  public addEdge(vertexOneId: number, vertexTwoId: number, distance: number) {
+    const vertexOne = this.getvertex(vertexOneId);
+    const vertexTwo = this.getvertex(vertexTwoId);
     const newEdge = {
-      verticeOne,
-      verticeTwo,
+      vertexOne,
+      vertexTwo,
       distance,
     };
     this.edges.push(newEdge);
-    this.clearPath();
     return newEdge;
   }
   public removeEdge(edge: Edge) {
-    console.log(JSON.stringify(edge));
     this.edges = this.edges.filter(
       (e) =>
         !(
-          (e.verticeOne.id === edge.verticeOne.id &&
-            e.verticeTwo.id === edge.verticeTwo.id) ||
-          (e.verticeOne.id === edge.verticeTwo.id &&
-            e.verticeTwo.id === edge.verticeOne.id)
+          (e.vertexOne.id === edge.vertexOne.id &&
+            e.vertexTwo.id === edge.vertexTwo.id) ||
+          (e.vertexOne.id === edge.vertexTwo.id &&
+            e.vertexTwo.id === edge.vertexOne.id)
         )
     );
-    console.log(JSON.stringify(edge));
-    console.log(JSON.stringify(this.edges));
-    this.clearPath();
   }
   public getPath(): Edge[] {
     return this.path;
   }
-  public getVertice(verticeId: number) {
-    const foundVertice = this.verticies.find((v) => v.id === verticeId);
-    if (foundVertice) {
-      return foundVertice;
+  public getvertex(vertexId: number) {
+    const foundvertex = this.verticies.find((v) => v.id === vertexId);
+    if (foundvertex) {
+      return foundvertex;
     } else {
-      throw Error(`Could not find a vertice with the id: ${verticeId}`);
+      throw Error(`Could not find a vertex with the id: ${vertexId}`);
     }
   }
-  public getVerticies(): Vertice[] {
+  public getVerticies(): Vertex[] {
     return _.cloneDeep(this.verticies);
   }
   public getEdges(): Edge[] {
     return _.cloneDeep(this.edges);
   }
 
-  public traverse(
-    fromVerticeId: number,
-    toVerticeId: number,
-    path: Edge[] = []
-  ) {
-    const fromVertice = this.getVertice(fromVerticeId);
-    const toVertice = this.getVertice(toVerticeId);
+  public traverse(fromvertexId: number, tovertexId: number, path: Edge[] = []) {
+    const fromvertex = this.getvertex(fromvertexId);
+    const tovertex = this.getvertex(tovertexId);
     if (path.length === 0) {
       this.clearPath();
 
-      fromVertice.distance = 0;
+      fromvertex.distance = 0;
     }
-    if (fromVertice === toVertice) {
+    if (fromvertex === tovertex) {
       if (
         this.path.reduce((sum, e) => sum + e.distance, 0) >
           path.reduce((sum, e) => sum + e.distance, 0) ||
@@ -101,12 +93,12 @@ export class Graph {
         this.path = [...path];
       }
     }
-    let possible = this.findPossibleEdges(fromVertice.id, path);
+    let possible = this.findPossibleEdges(fromvertex.id, path);
     const nextVerticies = [];
     for (let edge of possible) {
       const nextVert =
-        edge.verticeOne === fromVertice ? edge.verticeTwo : edge.verticeOne;
-      const nextDist = fromVertice.distance + edge.distance;
+        edge.vertexOne === fromvertex ? edge.vertexTwo : edge.vertexOne;
+      const nextDist = fromvertex.distance + edge.distance;
       if (nextVert.distance > nextDist) {
         nextVert.distance = nextDist;
         nextVerticies.push(nextVert);
@@ -114,9 +106,9 @@ export class Graph {
     }
     for (let next of this.findNextVerticies(nextVerticies)) {
       if (next) {
-        this.traverse(next.id, toVerticeId, [
+        this.traverse(next.id, tovertexId, [
           ...path,
-          this.getPathBetween(fromVertice, next),
+          this.getPathBetween(fromvertex, next),
         ]);
       }
     }
@@ -125,22 +117,21 @@ export class Graph {
       distance: this.path.reduce((sum, e) => sum + e.distance, 0),
     });
   }
-  public pointExists(position: { x: number; y: number }): Vertice | undefined {
+  public pointExists(position: { x: number; y: number }): Vertex | undefined {
     return this.verticies.find(
       (v) =>
-        Math.abs(v.position.x - position.x) < this.minPointDistance &&
-        Math.abs(v.position.y - position.y) < this.minPointDistance
+        Math.abs(v.position.x - position.x) <= this.minPointDistance &&
+        Math.abs(v.position.y - position.y) <= this.minPointDistance
     );
   }
   public edgeExists(
-    verticeOneId: number,
-    verticeTwoId: number
+    vertexOneId: number,
+    vertexTwoId: number
   ): Edge | undefined {
     return this.edges.find(
       (e) =>
-        (e.verticeOne.id === verticeOneId &&
-          e.verticeTwo.id === verticeTwoId) ||
-        (e.verticeOne.id === verticeTwoId && e.verticeTwo.id === verticeOneId)
+        (e.vertexOne.id === vertexOneId && e.vertexTwo.id === vertexTwoId) ||
+        (e.vertexOne.id === vertexTwoId && e.vertexTwo.id === vertexOneId)
     );
   }
   private clearPath() {
@@ -149,25 +140,25 @@ export class Graph {
       v.distance = Number.MAX_SAFE_INTEGER;
     });
   }
-  private getNextVerticeId() {
+  private getNextvertexId() {
     return this.verticies.length
       ? this.verticies[this.verticies.length - 1].id + 1
       : 1;
   }
-  private getPathBetween(verticeOne: Vertice, verticeTwo: Vertice) {
+  private getPathBetween(vertexOne: Vertex, vertexTwo: Vertex) {
     return this.edges.filter(
       (e) =>
-        (e.verticeOne == verticeOne && e.verticeTwo == verticeTwo) ||
-        (e.verticeOne == verticeTwo && e.verticeTwo == verticeOne)
+        (e.vertexOne == vertexOne && e.vertexTwo == vertexTwo) ||
+        (e.vertexOne == vertexTwo && e.vertexTwo == vertexOne)
     )[0];
   }
-  private findNextVerticies(nextVerticies: Vertice[]) {
+  private findNextVerticies(nextVerticies: Vertex[]) {
     const unexploredVerticies = nextVerticies.filter(
       (v) => v.distance !== Number.MAX_SAFE_INTEGER
     );
     return unexploredVerticies.sort((a, b) => b.distance - a.distance);
   }
-  private findPossibleEdges(verticeId: number, path: Edge[]) {
+  private findPossibleEdges(vertexId: number, path: Edge[]) {
     return this.edges
       .filter((edge) => {
         if (path.includes(edge)) {
@@ -175,8 +166,7 @@ export class Graph {
         } else {
           return path.includes(edge)
             ? false
-            : edge.verticeOne.id === verticeId ||
-                edge.verticeTwo.id === verticeId;
+            : edge.vertexOne.id === vertexId || edge.vertexTwo.id === vertexId;
         }
       })
       .sort((e1, e2) => e2.distance - e1.distance);

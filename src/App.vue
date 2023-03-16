@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import GraphDisplay from "./components/GraphDisplay.vue";
-// const graphRenderer = new GraphCanvas();
 </script>
 <template>
   <div><GraphDisplay></GraphDisplay></div>
@@ -8,7 +7,7 @@ import GraphDisplay from "./components/GraphDisplay.vue";
 <script lang="ts">
 export default {
   name: "App",
-  components: { Graph: GraphDisplay },
+  components: { GraphDisplay },
 };
 </script>
 

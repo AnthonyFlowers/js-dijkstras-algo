@@ -15,7 +15,7 @@ import { Graph, Edge, Position, Vertex } from "./graph";
       <label>Edge Length: </label>
       <input type="number" ref="edgeLength" value="1" />
     </div>
-    <div class="">
+    <div class="algorithProps">
       <label>From: </label>
       <input type="number" ref="startNode" value="1" min="1" />
       <label>To: </label>
@@ -153,10 +153,16 @@ export default defineComponent({
 });
 </script>
 <style scoped>
+#graphView > * {
+  margin-bottom: 8px;
+}
 #graphCanvas {
   /* width: 600px;
   height: 300px; */
   border: solid 1px black;
   display: block;
+}
+.algorithProps > * {
+  margin-right: 5px;
 }
 </style>

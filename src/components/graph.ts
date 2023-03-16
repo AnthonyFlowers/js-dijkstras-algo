@@ -25,7 +25,7 @@ export class Graph {
     this.path = [];
     this.verticies = [];
     this.edges = [];
-    this.minPointDistance = 20;
+    this.minPointDistance = 60;
   }
   public addvertex(position: Position): Vertex {
     const newvertex = {

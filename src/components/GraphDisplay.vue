@@ -1,53 +1,75 @@
 <script setup lang="ts">
 import { defineComponent } from "vue";
-import { Graph } from "./graph";
-import { CanvasRenderer } from "./GraphCanvas";
+import { Graph, Edge, Position, Vertice } from "./graph";
 </script>
 <template>
   <div id="graphView">
-    <canvas id="graphCanvas" ref="graphCanvas" @click=""></canvas>
-    <input type="checkbox" @click="toggleEdgeMode" />
+    <canvas id="graphCanvas" ref="graphCanvas" @click="graphClick"></canvas>
+    <input type="checkbox" ref="edgeMode" />
+    <button @click="traverse">Traverse</button>
   </div>
 </template>
 <script lang="ts">
 export default defineComponent({
-  name: "Graph",
-  props: { graph: Graph, graphRenderer: CanvasRenderer },
-  mounted() {
-    const graphCanvasRef = <HTMLCanvasElement>this.$refs.graphCanvas;
-    const edgeToggle = <HTMLInputElement>this.$refs.edgeMode;
-    console.log();
-    const graphRenderer = new CanvasRenderer(graphCanvasRef);
-    const graph = new Graph(graphRenderer);
-    graph.addVertice({ position: { x: 10, y: 10 } });
-    graph.addVertice({ position: { x: 30, y: 30 } });
-    graph.addVertice({ position: { x: 50, y: 50 } });
-    graph.addVertice({ position: { x: 100, y: 50 } });
-    graph.addEdge(1, 2, 4);
-    graph.addEdge(1, 4, 5);
-
-    const path = graph.traverse(2, 4);
-    console.log(path);
-    graphCanvasRef.onclick = (ev) => {
+  name: "GraphDisplay",
+  data() {
+    return {
+      graphCanvasRef: <HTMLCanvasElement>this.$refs.graphCanvas,
+      graph: new Graph(),
+      edgeToggle: <HTMLInputElement>this.$refs.edgeMode,
+      selectedPoint: null as Vertice | null,
+    };
+  },
+  methods: {
+    clear() {},
+    addVertice(position: Position) {
+      this.graph.addVertice(position);
+    },
+    graphClick(ev: MouseEvent) {
+      const canvas = <HTMLCanvasElement>ev.target;
       const position = {
         x: ev.offsetX / 2,
         y: ev.offsetY / 2,
       };
-      graph.addVertice({ position });
-      console.log(graph);
-      graphCanvasRef.onclick = (ev) => {
-        const position = {
-          x: ev.offsetX / 2,
-          y: ev.offsetY / 2,
-        };
-        graph.addVertice({ position });
-        console.log(graph);
-      };
-    };
-  },
-  methods: {
-    canvasClick() {},
-    toggleEdgeMode() {},
+      const foundPoint = this.graph.pointExists(position);
+      if (this.selectedPoint && foundPoint) {
+        const edge = this.graph.addEdge(
+          this.selectedPoint.id,
+          foundPoint.id,
+          5
+        );
+        this.drawEdge(edge, canvas);
+      }
+      if (foundPoint) {
+        this.selectedPoint = foundPoint;
+        console.log("exists", this.selectedPoint);
+      } else {
+        this.graph.addVertice(position);
+        this.drawVertice(position, canvas);
+        console.log(this.graph);
+      }
+    },
+    drawVertice(position: Position, canvas: HTMLCanvasElement) {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.beginPath();
+      ctx.arc(position.x, position.y, 3, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+    },
+    drawEdge(edge: Edge, canvas: HTMLCanvasElement) {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.beginPath();
+      ctx.moveTo(edge.verticeOne.position.x, edge.verticeOne.position.y);
+      ctx.lineTo(edge.verticeTwo.position.x, edge.verticeTwo.position.y);
+      ctx.stroke();
+      ctx.closePath();
+    },
+    traverse() {
+      const path = this.graph.traverse(1, 2);
+      console.log(path);
+    },
   },
 });
 </script>

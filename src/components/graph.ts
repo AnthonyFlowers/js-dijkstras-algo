@@ -4,40 +4,35 @@ export interface Edge {
   distance: number;
 }
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface Vertice {
   id: number;
   distance: number;
-  position: {
-    x: number;
-    y: number;
-  };
-}
-
-export interface GraphRenderer {
-  drawVertice(vertice: Vertice): boolean;
-  drawEdge(edge: Edge): boolean;
-  clear(): void;
+  position: Position;
 }
 
 export class Graph {
   private path: Edge[];
   private verticies: Vertice[];
   private edges: Edge[];
-  private renderer: GraphRenderer | undefined;
-  constructor(renderer: GraphRenderer) {
+  private minDistance: number;
+  constructor() {
     this.path = [];
     this.verticies = [];
     this.edges = [];
-    this.renderer = renderer;
+    this.minDistance = 10;
   }
-  public addVertice(vertice: { position: { x: number; y: number } }) {
+  public addVertice(position: Position) {
     const newVertice = {
       id: this.getNextVerticeId(),
       distance: Number.MAX_SAFE_INTEGER,
-      position: vertice.position,
+      position: position,
     };
     this.verticies.push(newVertice);
-    this.renderer?.drawVertice(newVertice);
   }
   public addEdge(verticeOneId: number, verticeTwoId: number, distance: number) {
     const verticeOne = this.getVertice(verticeOneId);
@@ -48,7 +43,7 @@ export class Graph {
       distance,
     };
     this.edges.push(newEdge);
-    this.renderer?.drawEdge(newEdge);
+    return newEdge;
   }
   public getPath(): Edge[] {
     return this.path;
@@ -103,6 +98,13 @@ export class Graph {
       path: this.path,
       distance: this.path.reduce((sum, e) => sum + e.distance, 0),
     };
+  }
+  public pointExists(position: { x: number; y: number }): Vertice | undefined {
+    return this.verticies.find(
+      (v) =>
+        Math.abs(v.position.x - position.x) <= this.minDistance &&
+        Math.abs(v.position.y - position.y) <= this.minDistance
+    );
   }
   private getNextVerticeId() {
     return this.verticies.length

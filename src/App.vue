@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import Graph from "./components/GraphDisplay.vue";
+import GraphDisplay from "./components/GraphDisplay.vue";
+// const graphRenderer = new GraphCanvas();
 </script>
 <template>
-  <div><Graph></Graph></div>
+  <div><GraphDisplay></GraphDisplay></div>
 </template>
 <script lang="ts">
 export default {
   name: "App",
-  components: { Graph },
+  components: { Graph: GraphDisplay },
 };
 </script>
 

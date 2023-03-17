@@ -2,7 +2,7 @@
 import GraphDisplay from "./components/GraphDisplay.vue";
 </script>
 <template>
-  <div><GraphDisplay></GraphDisplay></div>
+  <GraphDisplay></GraphDisplay>
 </template>
 <script lang="ts">
 export default {
